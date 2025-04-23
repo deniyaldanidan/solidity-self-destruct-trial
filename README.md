@@ -1,66 +1,68 @@
-## Foundry
+# `selfdestruct` attack trials
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+learned from [cyfrin-glossary](https://www.cyfrin.io/glossary/self-destruct-hack-solidity-code-example)
 
-Foundry consists of:
+## Description
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+The `selfdestruct` keyword in Solidity is used to **permanently delete a contract** from the blockchain and **send all of its remaining Ether to a specified address**.
 
-## Documentation
+---
 
-https://book.getfoundry.sh/
+## 🧨 What It Does:
 
-## Usage
+1. **Deletes the contract's code and storage** from the Ethereum blockchain.
+2. **Sends any remaining ETH** in the contract to a given address.
+3. Makes the contract's address unusable for any further calls (although its address and transaction history still remain on-chain).
 
-### Build
+---
 
-```shell
-$ forge build
+### 🧪 Syntax:
+
+```solidity
+selfdestruct(payableAddress);
 ```
 
-### Test
+- `payableAddress`: The address that will receive the remaining Ether.
 
-```shell
-$ forge test
+---
+
+### 🧱 Example:
+
+```solidity
+contract Killable {
+    address payable public owner;
+
+    constructor() {
+        owner = payable(msg.sender);
+    }
+
+    function kill() external {
+        require(msg.sender == owner, "Not the owner");
+        selfdestruct(owner);
+    }
+
+    receive() external payable {}
+}
 ```
 
-### Format
+Here:
 
-```shell
-$ forge fmt
-```
+- The contract can receive ETH.
+- Only the `owner` can call `kill()`.
+- When `kill()` is called, the contract is deleted and the remaining ETH is sent to the owner.
 
-### Gas Snapshots
+---
 
-```shell
-$ forge snapshot
-```
+### ⚠️ Important Notes:
 
-### Anvil
+| Point              | Description                                                                                                                                                                   |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🚫 Code deletion   | After `selfdestruct`, the contract code is gone; calling it returns empty responses.                                                                                          |
+| 🧊 No resurrection | You cannot redeploy the exact same contract at the same address (unless via create2).                                                                                         |
+| 🔒 Access control  | Always protect `selfdestruct` with a condition (like `onlyOwner`) to avoid malicious shutdowns.                                                                               |
+| 🔍 Still visible   | All past transactions and the address remain visible on-chain.                                                                                                                |
+| 💥 Risky to use    | Often considered bad practice now unless absolutely necessary. Ethereum core devs may deprecate it in the future (e.g., [EIP-4758](https://eips.ethereum.org/EIPS/eip-4758)). |
 
-```shell
-$ anvil
-```
+---
 
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+Want to see a use case like emergency shutdowns, upgradeable proxies, or factory cleanup?
