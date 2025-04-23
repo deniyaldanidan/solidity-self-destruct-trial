@@ -64,5 +64,3 @@ Here:
 | 💥 Risky to use    | Often considered bad practice now unless absolutely necessary. Ethereum core devs may deprecate it in the future (e.g., [EIP-4758](https://eips.ethereum.org/EIPS/eip-4758)). |
 
 ---
-
-Want to see a use case like emergency shutdowns, upgradeable proxies, or factory cleanup?
